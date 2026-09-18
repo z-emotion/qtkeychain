@@ -90,6 +90,17 @@ if(WIN32)
     set_target_properties( ${QTKEYCHAIN_TARGET_NAME} PROPERTIES DEBUG_POSTFIX "d" )
 endif()
 
+if(MSVC)
+    # Generate a .pdb file for crash reporting in RELEASE build.
+    target_compile_options(${QTKEYCHAIN_TARGET_NAME} PRIVATE $<$<CONFIG:RELEASE>:/Zi>)
+
+    # /OPT:REF and /OPT:ICF are re-enabled explicitly because /DEBUG turns them off by default.
+    target_link_options(${QTKEYCHAIN_TARGET_NAME} PRIVATE $<$<CONFIG:RELEASE>:/DEBUG> $<$<CONFIG:RELEASE>:/OPT:REF> $<$<CONFIG:RELEASE>:/OPT:ICF>)
+elseif(APPLE)
+    # Keep debug info so that dsymutil can generate a .dSYM file for crash reporting in RELEASE build.
+    target_compile_options(${QTKEYCHAIN_TARGET_NAME} PRIVATE $<$<CONFIG:RELEASE>:-g>)
+endif()
+
 target_link_libraries(${QTKEYCHAIN_TARGET_NAME} PUBLIC ${qtkeychain_LIBRARIES} PRIVATE ${qtkeychain_LIBRARIES_PRIVATE})
 if(NOT INTERFACE_INCLUDE_SUFFIX)
     set(INTERFACE_INCLUDE_SUFFIX include)
